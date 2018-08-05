@@ -21,7 +21,7 @@ But in time it will be migrated to C# as well.
 ## OS Compatibles
 
 | OS | Architecture |
-| ------ | | ------ |
+| ------ | ------ |
 | Windows XP | (x86/x64) |
 | Windows Vista | (x86/x64) |
 | Windows 7 | (x86/x64) |
