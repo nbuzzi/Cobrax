@@ -105,7 +105,7 @@ If Form1.Winsock1(vIndex(0)).state = sckConnected Then
     Form1.Winsock1(vIndex(0)).SendData "ssr"
     
 Else
-    lista.List1.ListItems.Add , , "[ Error se ah desconectado o perdido la conexion ]"
+    lista.List1.ListItems.Add , , "[ Error se ha desconectado o perdido la conexion ]"
     
     Unload Me
 End If
@@ -125,7 +125,7 @@ ElseIf Form1.Winsock1(vIndex(0)).state = sckConnected And x = vbNo Then
     Foto.SetFocus
 Else
 
-    lista.List1.ListItems.Add , , "[ Error se ah desconectado o perdido la conexion ]"
+    lista.List1.ListItems.Add , , "[ Error se ha desconectado o perdido la conexion ]"
     
     Unload Form2
     Unload Form4
@@ -243,3 +243,6 @@ Private Sub Monitor_Timer()
     End If
 End Sub
 
+Private Sub Picture1_Click()
+
+End Sub

