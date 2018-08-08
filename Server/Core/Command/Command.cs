@@ -78,7 +78,7 @@
                     var sizeScreen = screenBuffer.Length;
 
                     _connection?.SendData(string.Format("|archivo|{0}|img.jpg|", sizeScreen));
-                    _connection?.SendBytes(screenBuffer);
+                    _connection?.SendData(screenBuffer);
 
                     return;
                 }

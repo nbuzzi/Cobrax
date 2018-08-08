@@ -20,18 +20,21 @@
         private EndPoint _endPoint;
 
         private readonly Command _command;
+        private readonly ConnectionConfiguration _connectionConfiguration;
 
         private int _tries;
 
         #region Constructor
 
-        public Connection(
-            string ipAddress = LOCAL_ADDRESS,
-            int portNumber = PORT_NUMBER)
+        public Connection(ConnectionConfiguration connectionConfiguration)
         {
             Console.ForegroundColor = ConsoleColor.Green;
 
-            Console.WriteLine("Initializing the Connection Host:{0} Port:{1}", ipAddress, portNumber);
+            Console.WriteLine("Initializing the Connection Host:{0} Port:{1}",
+                connectionConfiguration.Host, connectionConfiguration.PortNumber);
+
+            _connectionConfiguration = connectionConfiguration;
+
             _command = new Command(this);
         }
 
@@ -39,61 +42,70 @@
 
         #region Methods
 
-        public EndPoint ConfigureEndPoint(
-            string ipAddress = LOCAL_ADDRESS,
-            int portNumber = PORT_NUMBER)
+        public EndPoint ConfigureEndPoint()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var ipHostInfo = Dns.Resolve(ipAddress);
-#pragma warning restore CS0618 // Type or member is obsolete
+            if ( _connectionConfiguration == null )
+            {
+                throw new Exception("Error getting the connection configuration.");
+            }
 
-            var ipAddressSolved = ipHostInfo.AddressList[0];
-            var remoteEP = new IPEndPoint(ipAddressSolved, portNumber);
-
-            return remoteEP;
+#pragma warning disable CS0618
+            return new IPEndPoint(
+                Dns.Resolve(_connectionConfiguration.Host).AddressList[0],
+                int.Parse(_connectionConfiguration.PortNumber));
+#pragma warning restore CS0618
         }
 
         public Socket ConfigureSocket() => new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-        public void ConfigureClient(
-            string ipAddress = LOCAL_ADDRESS,
-            int portNumber = PORT_NUMBER)
+        public void ConfigureClient()
         {
             if (_endPoint == null || _socket == null)
             {
                 _tries = 0;
 
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Configurating client with the host {0} in the port {1}", ipAddress, portNumber);
+                Console.WriteLine(
+                    "Configurating client with the host {0} in the port {1}",
+                    _connectionConfiguration.Host,
+                    _connectionConfiguration.PortNumber);
 
-                _endPoint = ConfigureEndPoint(ipAddress, portNumber);
+                _endPoint = ConfigureEndPoint();
                 _socket = ConfigureSocket();
             }
 
             if (!_socket.Connected)
             {
-                ConnectAsync(ipAddress, portNumber);
+                ConnectAsync();
             }
         }
 
-        public void ConnectAsync(
-            string ipAddress = LOCAL_ADDRESS,
-            int portNumber = PORT_NUMBER)
+        public void ConnectAsync()
         {
             try
             {
-                Console.WriteLine("Trying to connect with the host {0} in the port {1}", ipAddress, portNumber);
+                var informationForConnection = string.Format(
+                    "|informa|{0}|{1}|",
+                    Environment.MachineName,
+                    Environment.OSVersion.VersionString);
+
+                Console.WriteLine(
+                    "Trying to connect with the host {0} in the port {1}",
+                    _connectionConfiguration.Host,
+                    _connectionConfiguration.PortNumber);
 
                 if (!_socket.Connected)
                 {
                     _socket.Connect(_endPoint);
 
                     //Nos conectamos con el cliente
-                    SendData(string.Format("|informa|{0}|{1}|", Environment.MachineName, Environment.OSVersion.VersionString));
+                    SendData(informationForConnection);
 
                     Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.WriteLine("Socket connected to {0}",
-                    _socket.RemoteEndPoint.ToString());
+
+                    Console.WriteLine(
+                        "Socket connected to {0}",
+                        _socket.RemoteEndPoint.ToString());
                 }
             }
             catch (Exception e)
@@ -170,7 +182,7 @@
             }
         }
 
-        public int SendBytes(byte[] bytesBuffer)
+        public int SendData(byte[] bytesBuffer)
         {
             if (_socket == null || !_socket.Connected)
             {

@@ -1,30 +1,42 @@
 ﻿namespace Server
 {
     using System;
-    using System.Configuration;
     using System.Threading;
     using Core.Connection;
 
-    class Program
+    public static class Program
     {
+        private static readonly ConnectionConfiguration _connectionConfiguration;
+        private static readonly EnvironmentConfiguration _environmentConfiguration;
+        private static readonly Connection _connection;
+
+        static Program()
+        {
+            _environmentConfiguration = EnvironmentConfiguration.Load();
+
+            _connectionConfiguration = new ConnectionConfiguration
+            {
+                Host = _environmentConfiguration.Host,
+                PortNumber = _environmentConfiguration.PortNumber,
+                UseProxy = _environmentConfiguration.UseProxy
+            };
+
+            _connection = new Connection(_connectionConfiguration);
+        }
+
         static void Main(string[] args)
         {
-            var connection = new Connection();
-
-            var addressToConnect = ConfigurationManager.AppSettings["HostAddress"] as string ?? "127.0.0.1";
-            var portNumber = ConfigurationManager.AppSettings["PortNumber"] as string ?? "100";
-
             while (true)
             {
                 try
                 {
-                    connection.ConfigureClient(addressToConnect, int.Parse(portNumber));
+                    _connection.ConfigureClient();
 
                     while (true)
                     {
                         try
                         {
-                            connection.ReceiveInformation();
+                            _connection.ReceiveInformation();
                         }
                         catch (Exception ex)
                         {
