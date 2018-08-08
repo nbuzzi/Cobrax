@@ -3,3 +3,5 @@ Server/Server/obj
 Server/Core/bin
 Server/Core/obj
 .vscode
+.vs
+.vs/Server
