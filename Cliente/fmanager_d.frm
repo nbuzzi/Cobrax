@@ -121,6 +121,13 @@ Private Sub Command2_Click()
 
         Open App.path & "\gen." & extension For Binary Access Read As #1
         size = LOF(1)
+        
+        'Fixing bug
+        If size <= 0 Then
+            Close
+            Exit Sub
+        End If
+            
         ReDim arrData(size - 1)
         Get #1, , arrData
         Close

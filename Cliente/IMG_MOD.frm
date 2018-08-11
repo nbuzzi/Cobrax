@@ -243,6 +243,3 @@ Private Sub Monitor_Timer()
     End If
 End Sub
 
-Private Sub Picture1_Click()
-
-End Sub

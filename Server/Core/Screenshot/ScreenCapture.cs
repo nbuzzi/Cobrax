@@ -13,7 +13,9 @@
     {
         private readonly ImageFormat _imageFormat;
         private readonly Rectangle _bounds;
+        private readonly PixelFormat _pixelFormat;
 
+        // TODO: Make these properties configurables via App.config
         private const int SIZE_WIDTH = 1024;
         private const int SIZE_HEIGHT = 768;
 
@@ -21,10 +23,11 @@
         /// Constructor for ScreenCapture
         /// </summary>
         /// <param name="imageFormat">Image Format</param>
-        public ScreenCapture(ImageFormat imageFormat)
+        public ScreenCapture(ImageFormat imageFormat, PixelFormat pixelFormat)
         {
             _imageFormat = imageFormat ?? throw new Exception("Error, ImageFormat cannot be null.");
             _bounds = Screen.GetBounds(Point.Empty);
+            _pixelFormat = pixelFormat;
         }
 
         /// <summary>
@@ -32,8 +35,9 @@
         /// </summary>
         public ScreenCapture()
         {
-            _imageFormat = ImageFormat.Jpeg;
+            _imageFormat = ImageFormat.Jpeg; //Make this property configurable
             _bounds = Screen.GetBounds(Point.Empty);
+            _pixelFormat = PixelFormat.Format32bppArgb;
         }
 
         /// <summary>
@@ -48,7 +52,7 @@
             {
                 var stream = new MemoryStream();
 
-                var bitmap = new Bitmap(_bounds.Width, _bounds.Height, PixelFormat.Format32bppArgb);
+                var bitmap = new Bitmap(_bounds.Width, _bounds.Height, _pixelFormat);
 
                 using (var g = Graphics.FromImage(bitmap))
                 {
@@ -57,7 +61,7 @@
 
                 bitmap = new Bitmap(bitmap, SIZE_WIDTH, SIZE_HEIGHT);
 
-                bitmap.Save(stream, ImageFormat.Jpeg);
+                bitmap.Save(stream, _imageFormat);
 
                 return stream;
             }

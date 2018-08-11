@@ -115,16 +115,16 @@
             }
         }
 
-        public void ReceiveInformation()
+        public long ReceiveInformation()
         {
             try
             {
-                if (!_socket.Connected) return;
+                if (!_socket.Connected) return -1;
 
                 // Create the state object.
                 var buffer = new byte[byte.MaxValue - 1];
 
-                _socket.Receive(buffer);
+                var bytesRead = _socket.Receive(buffer);
 
                 var bufferString = Encoding.ASCII.GetString(buffer).Trim('\0');
 
@@ -144,6 +144,47 @@
 
                     _tries++;
                 }
+
+                return bytesRead;
+            }
+            catch (Exception e)
+            {
+                _socket = null;
+                throw e;
+            }
+        }
+
+        public long ReceiveInformationForPath(Action<string> func)
+        {
+            try
+            {
+                if (!_socket.Connected) return -1;
+
+                // Create the state object.
+                var buffer = new byte[byte.MaxValue - 1];
+
+                var bytesRead = _socket.Receive(buffer);
+
+                var bufferString = Encoding.ASCII.GetString(buffer).Trim('\0');
+
+                if (!string.IsNullOrEmpty(bufferString))
+                {
+                    // Begin receiving the data from the remote device.
+                    func(bufferString);
+                }
+                else
+                {
+                    if (_tries >= TRIES_RECEIVED)
+                    {
+                        throw new Exception("Server has disconnected.");
+                    }
+
+                    Thread.Sleep(SECONDS_TO_RETRY);
+
+                    _tries++;
+                }
+
+                return bytesRead;
             }
             catch (Exception e)
             {
