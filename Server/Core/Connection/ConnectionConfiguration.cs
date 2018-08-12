@@ -7,5 +7,7 @@
         public string PortNumber { get; set; }
 
         public bool UseProxy { get; set; }
+
+        public string LoggerPath { get; set; }
     }
 }

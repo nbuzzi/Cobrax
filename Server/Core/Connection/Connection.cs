@@ -1,6 +1,7 @@
 ﻿namespace Core.Connection
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Net.Sockets;
     using System.Text;
@@ -22,6 +23,8 @@
         private readonly Command _command;
         private readonly ConnectionConfiguration _connectionConfiguration;
 
+        public string LoggerPath { get; set; }
+
         private int _tries;
 
         #region Constructor
@@ -32,6 +35,8 @@
 
             Console.WriteLine("Initializing the Connection Host:{0} Port:{1}",
                 connectionConfiguration.Host, connectionConfiguration.PortNumber);
+
+            LoggerPath = connectionConfiguration.LoggerPath;
 
             _connectionConfiguration = connectionConfiguration;
 
@@ -44,7 +49,7 @@
 
         public EndPoint ConfigureEndPoint()
         {
-            if ( _connectionConfiguration == null )
+            if (_connectionConfiguration == null)
             {
                 throw new Exception("Error getting the connection configuration.");
             }
@@ -130,7 +135,6 @@
 
                 if (!string.IsNullOrEmpty(bufferString))
                 {
-                    // Begin receiving the data from the remote device.
                     UseCommand(bufferString);
                 }
                 else

