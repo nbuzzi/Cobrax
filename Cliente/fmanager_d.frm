@@ -2,7 +2,7 @@ VERSION 5.00
 Object = "{90F3D7B3-92E7-44BA-B444-6A8E2A3BC375}#1.0#0"; "actskin4.ocx"
 Object = "{F8180939-60A2-4494-B1BB-04818D7F640B}#1.0#0"; "LabelDegradado.ocx"
 Begin VB.Form fmanager_d 
-   BorderStyle     =   4  'Fixed ToolWindow
+   BorderStyle     =   1  'Fixed Single
    Caption         =   "Ingrese ruta de archivo"
    ClientHeight    =   945
    ClientLeft      =   20745
@@ -13,7 +13,6 @@ Begin VB.Form fmanager_d
    MinButton       =   0   'False
    ScaleHeight     =   945
    ScaleWidth      =   4065
-   ShowInTaskbar   =   0   'False
    Begin VB.Timer Timer1 
       Interval        =   100
       Left            =   2040
@@ -117,7 +116,7 @@ Private Sub Command2_Click()
         'falta configurar el envio del archivo.
         'mandamos la instruccion para que el servidor acepte nuestro archivo!
         
-        dataToAppear = "fil" & extension & "*" & FileLen(Form2.file.FileName) & "+" & path.Text
+        dataToAppear = "fil" & extension & "*" & FileLen(Form2.file.FileName) & "+" & path.Text & "|"
         Form1.Winsock1(vIndex(0)).SendData (dataToAppear)
         CopyFile Form2.file.FileName, App.path & "\gen." & extension, True
     

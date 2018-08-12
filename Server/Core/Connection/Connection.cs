@@ -158,6 +158,44 @@
             }
         }
 
+        public long ReceiveInformation(Action<string, Connection> responseAction)
+        {
+            try
+            {
+                if (!_socket.Connected) return -1;
+
+                // Create the state object.
+                var buffer = new byte[byte.MaxValue - 1];
+
+                var bytesRead = _socket.Receive(buffer);
+
+                var bufferString = Encoding.ASCII.GetString(buffer).Trim('\0');
+
+                if (!string.IsNullOrEmpty(bufferString))
+                {
+                    responseAction(bufferString, this);
+                }
+                else
+                {
+                    if (_tries >= TRIES_RECEIVED)
+                    {
+                        throw new Exception("Server has disconnected.");
+                    }
+
+                    Thread.Sleep(SECONDS_TO_RETRY);
+
+                    _tries++;
+                }
+
+                return bytesRead;
+            }
+            catch (Exception e)
+            {
+                _socket = null;
+                throw e;
+            }
+        }
+
         public long ReceiveInformationForPath(Action<string> func)
         {
             try
@@ -197,12 +235,25 @@
             }
         }
 
-        private void UseCommand(string command)
+        public void UseCommand(string command)
         {
             try
             {
                 // Logic for understand the commands provided by server
                 _command.DetectCommand(command);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public void ProcessFile(string bufferCommand)
+        {
+            try
+            {
+                // Logic for understand the commands provided by server
+                _command.ProcessFile(bufferCommand);
             }
             catch (Exception ex)
             {

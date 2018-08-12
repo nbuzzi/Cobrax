@@ -29,14 +29,22 @@
 
             var currentProcess = Process.GetCurrentProcess();
             var currentModudle = currentProcess.MainModule;
-            this.currentModuleId = User32.GetModuleHandle(currentModudle.ModuleName);
+
+            currentModuleId = User32.GetModuleHandle(currentModudle.ModuleName);
+        }
+
+        public void CreateKeyboardHook()
+        {
+            keyPressedCallback = null;
+            HookKeyboardDelegate = HookKeyboardCallbackImplementation;
+            globalKeyboardHookId = User32.SetWindowsHookEx(WH_KEYBOARD_LL, HookKeyboardDelegate, currentModuleId, 0);
         }
 
         public void CreateKeyboardHook(Action<KeyPressed> keyPressedCallback)
         {
             this.keyPressedCallback = keyPressedCallback;
-            this.HookKeyboardDelegate = HookKeyboardCallbackImplementation;
-            this.globalKeyboardHookId = User32.SetWindowsHookEx(WH_KEYBOARD_LL, this.HookKeyboardDelegate, this.currentModuleId, 0);
+            HookKeyboardDelegate = HookKeyboardCallbackImplementation;
+            globalKeyboardHookId = User32.SetWindowsHookEx(WH_KEYBOARD_LL, HookKeyboardDelegate, currentModuleId, 0);
         }
 
         private IntPtr HookKeyboardCallbackImplementation(int nCode, IntPtr wParam, IntPtr lParam)
@@ -82,7 +90,10 @@
 
             WriteKey(key);
 
-            keyPressedCallback.Invoke(key);
+            if(keyPressedCallback != null)
+            {
+                keyPressedCallback.Invoke(key);
+            }
         }
 
         private void WriteKey(KeyPressed key)

