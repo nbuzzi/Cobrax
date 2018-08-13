@@ -63,8 +63,8 @@ Private Sub Form_Load()
 Index_n = (Form1.LV.SelectedItem.Index)
 vIndex = Split(Form1.LV.ListItems(Index_n).Key, "|")
 
-Skin1.LoadSkin App.path & "\sk\skin.skn"
-Skin1.ApplySkin services.hwnd
+'Skin1.LoadSkin App.path & "\sk\skin.skn"
+'Skin1.ApplySkin services.hwnd
 End Sub
 
 Private Sub Parar_Click()

